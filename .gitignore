@@ -1,0 +1,19 @@
+# Catkin build artifacts
+build/
+devel/
+logs/
+install/
+
+# Catkin tools metadata
+.catkin_tools/
+
+# Python cache
+*.pyc
+__pycache__/
+
+# Editor / system files
+*~
+*.swp
+.DS_Store
+.vscode/
+.idea/

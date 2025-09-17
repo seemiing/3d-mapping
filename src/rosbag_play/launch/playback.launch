@@ -1,0 +1,7 @@
+<launch>
+  <arg name="bag_path" default="/workspace/datasets/euroc_mav/V1_01_easy.bag" />
+
+  <node pkg="rosbag_play" type="bag_playback.py" name="bag_playback_node" output="screen">
+    <param name="bag_path" value="$(arg bag_path)" />
+  </node>
+</launch>

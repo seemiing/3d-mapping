@@ -1,0 +1,93 @@
+  <group ns="rtabmap">
+    <!-- SLAM (robot side) -->
+    <!-- args: "delete_db_on_start" and "udebug" -->
+    <node name="rtabmap" pkg="rtabmap_slam" type="rtabmap" output="screen">
+        <param name="frame_id"           type="string" value="image"/>
+        <param name="wait_for_transform" type="bool" value="true"/>
+
+        <param name="subscribe_depth" type="bool" value="true"/>
+        <param name="subscribe_scan"  type="bool" value="false"/>
+
+        <!-- As /az3/base_controller/odom topic doesn't provide covariances, we use TF to get odom and we fix the covariance -->
+        <param name="odom_frame_id"            type="string" value="global"/>
+        <param name="odom_tf_linear_variance"  type="double" value="0.001"/>
+        <param name="odom_tf_angular_variance" type="double" value="0.001"/>
+        <param name="subscribe_odom" value="true"/>
+        <param name="publish_tf" value="true"/>
+        <remap from="odom" to="/ov_msckf/odomimu"/>
+        <!-- <remap from="scan" to="/ov_msckf/points_msckf"/> -->
+
+        <remap from="rgb/image"       to="/camera/image_raw"/>
+        <remap from="depth/image"     to="/camera/depth_image"/>
+        <remap from="rgb/camera_info" to="/camera/camera_info"/>
+
+        <!-- RTAB-Map's parameters: do "rosrun rtabmap rtabmap (double-dash)params" to see the list of available parameters. -->
+        <param name="RGBD/NeighborLinkRefining" type="string" value="true"/>  <!-- Do odometry correction with consecutive laser scans -->
+        <param name="RGBD/ProximityBySpace"     type="string" value="true"/>  <!-- Local loop closure detection (using estimated position) with locations in WM -->
+        <param name="RGBD/ProximityByTime"      type="string" value="false"/> <!-- Local loop closure detection with locations in STM -->
+        <param name="RGBD/ProximityPathMaxNeighbors" type="string" value="10"/> <!-- Do also proximity detection by space by merging close scans together. -->
+        <param name="Reg/Strategy"              type="string" value="2"/>     <!-- 0=Visual, 1=ICP, 2=Visual+ICP -->
+        <param name="Vis/MinInliers"        type="string" value="12"/>   <!-- 3D visual words correspondence distance -->
+        <param name="RGBD/OptimizeFromGraphEnd" type="string" value="false"/> <!-- Optimize graph from initial node so /map -> /odom transform will be generated -->
+        <param name="RGBD/OptimizeMaxError"     type="string" value="4"/>	    <!-- Reject any loop closure causing large errors (>3x link's covariance) in the map -->
+        <param name="Reg/Force3DoF"             type="string" value="true"/>  <!-- 2D SLAM -->
+        <!-- Create 2D occupancy grid from laser scan -->
+        <param name="Mem/STMSize"               type="string" value="30"/>    <!-- increased to 30 to avoid adding too many loop closures on just seen locations -->
+        <param name="RGBD/LocalRadius"          type="string" value="1"/>     <!-- limit length of proximity detections -->
+        <param name="Icp/CorrespondenceRatio"   type="string" value="0.2"/>   <!-- minimum scan overlap to accept loop closure -->
+        <param name="Icp/PM"                    type="string" value="false"/>
+        <param name="Icp/PointToPlane"          type="string" value="false"/>
+        <param name="Icp/MaxCorrespondenceDistance"  type="string" value="0.15"/>
+        <param name="Icp/VoxelSize"             type="string" value="0.1"/>
+
+
+        <param name="Grid/Sensor" type="int" value="1"/>
+        <param name="Grid/FromDepth"            type="string" value="true"/> 
+        <param name="Grid/3D"                  type="string" value="true"/>
+        <param name="Grid/MaxGroundAngle"            type="string" value="45"/>
+        <param name="RGBD/DepthMax"          type="string" value="3"/> 
+
+        <param name="gen_dept" value=""/>
+        
+        <param name="ORB/Gpu" value="true"/>
+        
+   </node>
+
+  </group>
+
+  <!-- Visualisation RVIZ -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find rtabmap_demos)/launch/config/demo_robot_mapping.rviz" output="screen"/>
+   <node pkg="nodelet" type="nodelet" name="points_xyzrgb" args="standalone rtabmap_util/point_cloud_xyzrgb">
+    <remap from="rgb/image"       to="/camera/image_raw"/>
+  	<remap from="depth/image"     to="/camera/depth_image"/>
+  	<remap from="rgb/camera_info" to="/camera/camera_info"/>
+    <remap from="cloud"           to="voxel_cloud" />
+
+    <param name="queue_size" type="int" value="10"/>
+    <param name="voxel_size" type="double" value="0.1"/>
+  </node>
+
+    <!-- Các node khác từ file launch hiện tại của bạn -->
+    <!-- Ví dụ: OpenVINS và RTAB-Map nodes -->
+
+    <!-- Static transform từ imu đến image -->
+    <node pkg="tf" type="static_transform_publisher" name="imu_to_image" args="0.02172388268966517 -6.605455433829172e-05 -0.00048817563004522853 1.5708 3.1416 1.5708 imu image 100"/>
+    
+    <!-- Cấu hình RTAB-Map để sử dụng odometry từ OpenVINS -->
+    <node pkg="rtabmap_ros" type="rtabmap" name="rtabmap" output="screen">
+        <param name="frame_id" value="imu"/>
+        <param name="odom_frame_id" value="global"/>
+        <param name="publish_tf" value="true"/>
+        <param name="subscribe_odom" value="true"/>
+        <param name="subscribe_depth" value="true"/>
+        <param name="VoxelCloud" value="true"/>
+        <param name="Grid/FromDepth" value="true"/>
+        <!-- Thêm tham số để xoay dữ liệu camera nếu cần -->
+    </node>
+
+    <!-- Node OpenVINS (đảm bảo publish TF) -->
+    <!-- <node pkg="ov_msckf" type="run_subscribe_msckf" name="run_subscribe_msckf" output="screen">
+        <param name="publish_tf" value="true"/>
+    </node> -->
+
+    <node name="transform_point_cloud" pkg="master" type="transform_point_cloud.py" output="screen"/>

@@ -1,0 +1,10 @@
+<launch>
+    <arg name="model_type" default="small" />
+    <arg name="weights_folder" default="/workspace/catkin_ws_ov/src/depth_est/checkpoints/" />
+    <arg name="use_cuda" default="true" />
+    <node pkg="depth_est" type="depth_estimation.py" name="depth_estimation" output="screen">
+        <param name="mode" value="$(arg model_type)"/>
+        <param name="weights_folder" value="$(arg weights_folder)"/>
+        <param name="use_cuda" value="$(arg use_cuda"/>
+    </node>
+</launch>

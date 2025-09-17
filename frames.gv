@@ -1,0 +1,9 @@
+digraph G {
+"global" -> "imu"[label="Broadcaster: /ov_msckf\nAverage rate: 438.800 Hz\nMost recent transform: 1540821113.106 ( 0.000 sec old)\nBuffer length: 5.000 sec\n"];
+"imu" -> "cam0"[label="Broadcaster: /ov_msckf\nAverage rate: 440.400 Hz\nMost recent transform: 1540821113.106 ( 0.000 sec old)\nBuffer length: 5.000 sec\n"];
+"imu" -> "image"[label="Broadcaster: /imu_to_image\nAverage rate: 10.099 Hz\nMost recent transform: 1540821113.116 ( -0.010 sec old)\nBuffer length: 4.852 sec\n"];
+edge [style=invis];
+ subgraph cluster_legend { style=bold; color=black; label ="view_frames Result";
+"Recorded at time: 1540821113.106"[ shape=plaintext ] ;
+ }->"global";
+}
