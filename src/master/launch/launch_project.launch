@@ -134,18 +134,6 @@
     <!-- Static transform từ imu đến image -->
     <node pkg="tf" type="static_transform_publisher" name="imu_to_image" args="0.02172388268966517 -6.605455433829172e-05 -0.00048817563004522853 1.5708 3.1416 1.5708 imu image 100"/>
     
-    <!-- Cấu hình RTAB-Map để sử dụng odometry từ OpenVINS -->
-    <node pkg="rtabmap_ros" type="rtabmap" name="rtabmap" output="screen">
-        <param name="frame_id" value="imu"/>
-        <param name="odom_frame_id" value="global"/>
-        <param name="publish_tf" value="true"/>
-        <param name="subscribe_odom" value="true"/>
-        <param name="subscribe_depth" value="true"/>
-        <param name="VoxelCloud" value="true"/>
-        <param name="Grid/FromDepth" value="true"/>
-        <!-- Thêm tham số để xoay dữ liệu camera nếu cần -->
-    </node>
-    
     <node name="transform_point_cloud" pkg="master" type="transform_point_cloud.py" output="screen"/>
 
 </launch>
